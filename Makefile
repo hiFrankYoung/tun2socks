@@ -38,20 +38,25 @@ proto-gen:
 	touch leaf/build.rs
 	PROTO_GEN=1 cargo build -p leaf
 
+check-ios-targets:
+	rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
 
-ios-arm64:
-	cargo lipo --release --package tun2socks --targets "aarch64-apple-ios"
-	mkdir target/ios-arm64
+check-macos-targets:
+	rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+ios-arm64: check-ios-targets
+	cd tun2socks && CARGO_TARGET_DIR=../target cargo lipo --release --targets "aarch64-apple-ios"
+	mkdir -p target/ios-arm64
 	cp target/universal/release/libtun2socks.a target/ios-arm64/libtun2socks.a
 
-ios-arm64_x86_64-simulator:
-	cargo lipo --release --package tun2socks --targets "aarch64-apple-ios-sim,x86_64-apple-ios"
-	mkdir target/ios-arm64_x86_64-simulator
+ios-arm64_x86_64-simulator: check-ios-targets
+	cd tun2socks && CARGO_TARGET_DIR=../target cargo lipo --release --targets "aarch64-apple-ios-sim,x86_64-apple-ios"
+	mkdir -p target/ios-arm64_x86_64-simulator
 	cp target/universal/release/libtun2socks.a target/ios-arm64_x86_64-simulator/libtun2socks.a
 
-macos-arm64_x86_64:
-	cargo lipo --release --package tun2socks --targets "aarch64-apple-darwin,x86_64-apple-darwin"
-	mkdir target/macos-arm64_x86_64
+macos-arm64_x86_64: check-macos-targets
+	cd tun2socks && CARGO_TARGET_DIR=../target cargo lipo --release --targets "aarch64-apple-darwin,x86_64-apple-darwin"
+	mkdir -p target/macos-arm64_x86_64
 	cp target/universal/release/libtun2socks.a target/macos-arm64_x86_64/libtun2socks.a
 
 xcframework: ios-arm64 ios-arm64_x86_64-simulator macos-arm64_x86_64
